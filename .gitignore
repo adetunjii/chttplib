@@ -54,6 +54,7 @@ dkms.conf
 # vscode
 .vscode
 .vscode/*
+.DS_Store
 
 # intellij
 .idea
