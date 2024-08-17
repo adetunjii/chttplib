@@ -2,10 +2,13 @@
 *.d
 
 # Object files
+.*.swp
 *.o
-*.ko
-*.obj
-*.elf
+*.a
+*.xo
+*.so
+*.d
+*.log
 
 # Linker output
 *.ilk
