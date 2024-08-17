@@ -1,6 +1,5 @@
 #include "reader.h"
 
-
 bufReader *newBufReader(void) {
 	bufReader *r;
 	r = malloc(sizeof(bufReader) + sizeof(char[DEFAULT_BUFFER_SIZE]));
@@ -21,7 +20,6 @@ static char *readBytes(bufReader *r, unsigned int len) {
 		r->pos += len;
 		return p; 
 	}
-	
 	return NULL;
 }
 
@@ -39,7 +37,6 @@ static char *seekNewLine(char *s, size_t len) {
 			len -= (ret - s) + 1;
 			s = ret;
 		}
-
 		return ret;
 }
 
@@ -72,7 +69,6 @@ void bufReaderFree(bufReader *r) {
 	free(r);
 }
 
-
 #if defined(TEST_READER)
 #include "testutil.h"
 
@@ -98,9 +94,11 @@ int test_reader(void) {
 	int len2;
 	char *line2 = readLine(reader, &len2);
 	test("readLine() sets r->pos correctly after reading a line", memcmp(line2, "Host: localhost:8080", len2) == 0)
+
+	char* res = readBytes(reader, 5);
+	test("readBytes() reads n bytes", strlen(res))
 	
 	free(reader);
-
 
 	return 0;	
 }
