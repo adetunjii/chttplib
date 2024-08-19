@@ -257,7 +257,7 @@ int test_reader(void) {
 	int result;
 	result = readRequest(reader, req);
 	test("readRequest() fails on malformed requests", result == -1)
-	// printf("%d\n", reader->error);
+
 	test("readRequest() returns correct error", reader->error == PROTO_ERR)
 	test("readRequest() returns correct error string", memcmp(reader->errStr, "malformed HTTP request", 22))
 
