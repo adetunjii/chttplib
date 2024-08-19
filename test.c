@@ -3,14 +3,17 @@
 #include <string.h>
 
 int main(void) {
-	
-	char *str = "www.window.com";
+    char str[] = "www.windows.com";
+    char *token;
 
-	char *ret;
+    // First call to strtok with the string and delimiters (space and comma)
+    token = strtok(str, ".");
 
-	ret = memchr(str, '.', strlen(str));
-	size_t pos = 5;
-	printf("%s", str + pos);
+    // Continue to extract all tokens
+    while (token != NULL) {
+        printf("%s\n", token);
+        token = strtok(NULL, ".");
+    }
 
-	return 0;
+    return 0;
 }
