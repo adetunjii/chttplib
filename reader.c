@@ -143,11 +143,11 @@ static request *newRequest() {
 
 static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
 	for (int i = 0; i < MAX_REQ_TOKENS; i++) {
-		if (tokens[i] == NULL) {
+		printf("%s\n", tokens[i]);
+		if (tokens[i] == NULL || strlen(tokens[i]) == 0) {
 			for (int j = 0; j < i; j++) {
    	        	free(tokens[j]);
     	    }
-			requestFree(req);
 			return -1;
 		}
 	}
@@ -190,10 +190,12 @@ static int readRequest(bufReader *r, request *req) {
 				i++;
 				tok = strtok(NULL, " ");
 			}
-			
+
 			if (parseRequestLine(tokens, req) == -1) {
 				goto error;
 			}
+			
+			return 0;
 		} else {
 			goto error;
 		}
@@ -255,7 +257,9 @@ int test_reader(void) {
 	int result;
 	result = readRequest(reader, req);
 	test("readRequest() fails on malformed requests", result == -1)
-	test("readRequest() gets the correct http method", req->method == NULL)
+	// printf("%d\n", reader->error);
+	test("readRequest() returns correct error", reader->error == PROTO_ERR)
+	test("readRequest() returns correct error string", memcmp(reader->errStr, "malformed HTTP request", 22))
 
 	bufReaderFree(reader);
 	
