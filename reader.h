@@ -1,3 +1,6 @@
+#ifndef __READER_H
+#define __READER_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,3 +28,5 @@ typedef struct bufReader {
 /* size returns the size of the underlying buffer.*/
 size_t size(bufReader* r);
 void bufReaderFree(bufReader* r);
+
+#endif /* __READER_H */

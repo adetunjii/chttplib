@@ -1,6 +1,9 @@
 #include <stddef.h>
 #include <assert.h>
+#include <stdbool.h>
+
 #include "reader.h"
+#include "request.h"
 
 static void bufReaderSetError(bufReader *r, int errCode, const char* errStr) {
 	size_t len;
@@ -95,46 +98,40 @@ static char* readLine(bufReader *r, int *_len) {
 void bufReaderFree(bufReader *r) {
 	if (r == NULL) return;
 
-	if (r->buf != NULL) 
-		free(r->buf);
+	if (r->buf != NULL) free(r->buf);
 
 	r->pos = r->len = 0;
 	free(r);
 }
 
-typedef struct request {
-	char *method; // specifies the HTTP method - [GET, POST, PUT, etc.]
-	
-	char *proto;
-	char *uri;
-	int proto_major;
-	int proto_minor;
-
-	char *host;
-} request;
-
 static void requestFree(request *req) {
 	if (req == NULL) return;
 
-	if (req->method != NULL) 
+	if (req->method != NULL) {
 		free(req->method);
 		req->method = NULL;
-	if (req->proto != NULL)
+	}
+
+	if (req->proto != NULL) {
 		free(req->proto);
 		req->proto = NULL;
-	if (req->uri != NULL)
+	}
+
+	if (req->uri != NULL) {
 		free(req->uri);
 		req->uri = NULL;
-	if (req->host != NULL)
+	}
+
+	if (req->host != NULL) {
 		free(req->host);
 		req->host = NULL;
+	}
 
 	free(req);
 }
 
 static request *newRequest() {
 	request *req;
-
 	req = malloc(sizeof(request));
 	if (req == NULL) return NULL;
 
@@ -147,7 +144,7 @@ static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
 			for (int j = 0; j < i; j++) {
    	        	free(tokens[j]);
     	    }
-			return -1;
+			return HTTP_LIB_ERR;
 		}
 	}
 
@@ -157,30 +154,30 @@ static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
 		.proto = malloc(sizeof(char) * strlen(tokens[2]))
 	};
 
-	if (req->method == NULL || (req)->uri == NULL || (req)->proto == NULL) {
+	if (req->method == NULL || req->uri == NULL || req->proto == NULL) {
 		requestFree(req);
-		return -1;
+		return HTTP_LIB_ERR;
 	}
 
  	strcpy(req->method, tokens[0]);
 	strcpy(req->uri, tokens[1]);
 	strcpy(req->proto, tokens[2]);
 
-	return 0;
+	return HTTP_LIB_OK;
 }
 
-static int isValidMethod(char *method) {
+static bool validMethod(char *method) {
 	if (strlen(method) > 0) {
 		/*
-	     Method         = "OPTIONS"                ; Section 9.2
-	                    | "GET"                    ; Section 9.3
-	                    | "HEAD"                   ; Section 9.4
-	                    | "POST"                   ; Section 9.5
-	                    | "PUT"                    ; Section 9.6
-	                    | "DELETE"                 ; Section 9.7
-	                    | "TRACE"                  ; Section 9.8
-	                    | "CONNECT"                ; Section 9.9
-	                    | extension-method
+			Method         = "OPTIONS"                ; Section 9.2
+							| "GET"                    ; Section 9.3
+							| "HEAD"                   ; Section 9.4
+							| "POST"                   ; Section 9.5
+							| "PUT"                    ; Section 9.6
+							| "DELETE"                 ; Section 9.7
+							| "TRACE"                  ; Section 9.8
+							| "CONNECT"                ; Section 9.9
+							| extension-method
 		*/
 		const char *methods[] = {
 			"GET",
@@ -194,13 +191,30 @@ static int isValidMethod(char *method) {
 		};
 
 		for (int i = 0; i < (sizeof(methods)/sizeof(methods[1])); i++) 
-			if (strcmp(method, methods[i]) == 0) return HTTP_LIB_OK;
-	
+			if(strcmp(method, methods[i]) == 0) return true;
 	}
 
-	return HTTP_LIB_ERR;
+	return false;
 }
 
+static bool parseHTTPVersion(char *version, int *major, int *minor) {
+	if (strlen(version) != strlen("HTTP/X.Y")) {
+		*major = *minor = 0;
+		return false;
+	}
+	
+	if (strcmp(version, "HTTP/1.1") == 0) {
+		*major = *minor = 1;
+		return true;
+	} else if(strcmp(version, "HTTP/1.0") == 0 ) {
+		*major = 1;
+		*minor = 0;
+		return true;
+	} else {
+		*major = *minor = 0;
+		return false;
+	}
+}
 
 static int readRequest(bufReader *r, request *req) {
 	char *p, *line;
@@ -223,28 +237,34 @@ static int readRequest(bufReader *r, request *req) {
 			}
 
 			if (parseRequestLine(tokens, req) == -1) {
-				goto error;
-			}
-
-			if (isValidMethod(req->method) == -1) {
-				bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "invalid method");
-				free(line);
-				return HTTP_LIB_ERR;
+				bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "malformed HTTP request");
+				goto cleanup;
 			}
 			
-			return 0;
-		} else {
-			goto error;
+			if (!validMethod(req->method)) {
+				bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "invalid method");
+				goto cleanup;
+			}
+
+			int major, minor, ok;
+			ok = parseHTTPVersion(req->proto, &major, &minor);
+			if (!ok) {
+				bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "invalid HTTP version");
+				goto cleanup;
+			}
+
+			req->major = major;
+			req->minor = minor;
+
+			return HTTP_LIB_OK;
 		}
 	}
 
-	free(line);
-	return -1;
+	return HTTP_LIB_ERR;
 
-error:
-	bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "malformed HTTP request");
+cleanup:
 	free(line);
-	return -1;	
+	return HTTP_LIB_ERR;	
 }
 
 
@@ -297,8 +317,10 @@ int test_reader(void) {
 	test("readRequest() parses request method", memcmp(req->method, "GET", 3) == 0)
 	test("readRequest() parses uri", memcmp(req->uri, "/hello", 6) == 0)
 	test("readRequest() parses protocol", memcmp(req->proto, "HTTP/1.1", 8) == 0)
+	test("readRequest() gets proto major and minor", req->major == 1)
 
-	test ("isValidMethod() checks for valid methods", isValidMethod(req->method) == 0)
+	test ("isValidMethod() checks for valid methods", validMethod(req->method))
+
 
 	{
 		char *malformedHttpString = "GET /HTTP/1.1\r\n"
