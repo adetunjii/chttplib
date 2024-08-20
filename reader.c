@@ -169,6 +169,38 @@ static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
 	return 0;
 }
 
+static int isValidMethod(char *method) {
+	if (strlen(method) > 0) {
+		/*
+	     Method         = "OPTIONS"                ; Section 9.2
+	                    | "GET"                    ; Section 9.3
+	                    | "HEAD"                   ; Section 9.4
+	                    | "POST"                   ; Section 9.5
+	                    | "PUT"                    ; Section 9.6
+	                    | "DELETE"                 ; Section 9.7
+	                    | "TRACE"                  ; Section 9.8
+	                    | "CONNECT"                ; Section 9.9
+	                    | extension-method
+		*/
+		const char *methods[] = {
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"HEAD",
+			"OPTIONS",
+			"CONNECT",
+			"PATCH"
+		};
+
+		for (int i = 0; i < (sizeof(methods)/sizeof(methods[1])); i++) 
+			if (strcmp(method, methods[i]) == 0) return HTTP_LIB_OK;
+	
+	}
+
+	return HTTP_LIB_ERR;
+}
+
 
 static int readRequest(bufReader *r, request *req) {
 	char *p, *line;
@@ -193,6 +225,12 @@ static int readRequest(bufReader *r, request *req) {
 			if (parseRequestLine(tokens, req) == -1) {
 				goto error;
 			}
+
+			if (isValidMethod(req->method) == -1) {
+				bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "invalid method");
+				free(line);
+				return HTTP_LIB_ERR;
+			}
 			
 			return 0;
 		} else {
@@ -204,7 +242,7 @@ static int readRequest(bufReader *r, request *req) {
 	return -1;
 
 error:
-	bufReaderSetError(r, PROTO_ERR, "malformed HTTP request");
+	bufReaderSetError(r, HTTP_LIB_PROTO_ERR, "malformed HTTP request");
 	free(line);
 	return -1;	
 }
@@ -260,6 +298,8 @@ int test_reader(void) {
 	test("readRequest() parses uri", memcmp(req->uri, "/hello", 6) == 0)
 	test("readRequest() parses protocol", memcmp(req->proto, "HTTP/1.1", 8) == 0)
 
+	test ("isValidMethod() checks for valid methods", isValidMethod(req->method) == 0)
+
 	{
 		char *malformedHttpString = "GET /HTTP/1.1\r\n"
 									"Host: localhost:8080\r\n"
@@ -276,7 +316,7 @@ int test_reader(void) {
 		result = readRequest(reader, req);
 		test("readRequest() fails on malformed requests", result == -1)
 
-		test("readRequest() returns correct error", reader->error == PROTO_ERR)
+		test("readRequest() returns correct error", reader->error == HTTP_LIB_PROTO_ERR)
 		test("readRequest() returns correct error string", memcmp(reader->errStr, "malformed HTTP request", 22))
 		
 		bufReaderFree(reader);
