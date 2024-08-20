@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
         socklen_t client_addr_len = sizeof(client_addr);
         int *client_fd = malloc(sizeof(int));
 
-        // accept client conn,int sfgddfdfddadffdfdfection
         if ((*client_fd = accept(fd, 
                                 (struct sockaddr *)&client_addr, 
                                 &client_addr_len)) < 0) {

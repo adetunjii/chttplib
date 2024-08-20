@@ -143,7 +143,6 @@ static request *newRequest() {
 
 static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
 	for (int i = 0; i < MAX_REQ_TOKENS; i++) {
-		printf("%s\n", tokens[i]);
 		if (tokens[i] == NULL || strlen(tokens[i]) == 0) {
 			for (int j = 0; j < i; j++) {
    	        	free(tokens[j]);
@@ -243,25 +242,45 @@ int test_reader(void) {
 
 	bufReaderFree(reader);
 
-	char *malformedHttpString = "GET /HTTP/1.1\r\n"
-								"Host: localhost:8080\r\n"
-        						"User-Agent: curl/8.6.0\r\n"
-        						"Accept: */*";
-	
-	reader = newBufReader(malformedHttpString, strlen(malformedHttpString));
+	char *httpString =	"GET /hello HTTP/1.1\r\n"
+	 					"Host: 127.0.0.1:8080\r\n"
+       		 			"User-Agent: curl/8.6.0\r\n"
+        				"Accept: */*";	
+
+	reader = newBufReader(httpString, strlen(httpString));
 	if (reader == NULL) return -1;
 
-	request* req;
+	request *req;
 	req = newRequest();
-	
+
 	int result;
 	result = readRequest(reader, req);
-	test("readRequest() fails on malformed requests", result == -1)
+	test("readRequest() passes without errors", result == 0)
+	test("readRequest() parses request method", memcmp(req->method, "GET", 3) == 0)
+	test("readRequest() parses uri", memcmp(req->uri, "/hello", 6) == 0)
+	test("readRequest() parses protocol", memcmp(req->proto, "HTTP/1.1", 8) == 0)
 
-	test("readRequest() returns correct error", reader->error == PROTO_ERR)
-	test("readRequest() returns correct error string", memcmp(reader->errStr, "malformed HTTP request", 22))
+	{
+		char *malformedHttpString = "GET /HTTP/1.1\r\n"
+									"Host: localhost:8080\r\n"
+									"User-Agent: curl/8.6.0\r\n"
+									"Accept: */*";
+		
+		reader = newBufReader(malformedHttpString, strlen(malformedHttpString));
+		if (reader == NULL) return -1;
 
-	bufReaderFree(reader);
+		request* req;
+		req = newRequest();
+		
+		int result;
+		result = readRequest(reader, req);
+		test("readRequest() fails on malformed requests", result == -1)
+
+		test("readRequest() returns correct error", reader->error == PROTO_ERR)
+		test("readRequest() returns correct error string", memcmp(reader->errStr, "malformed HTTP request", 22))
+		
+		bufReaderFree(reader);
+	}
 	
 	return 0;	
 }
