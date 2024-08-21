@@ -27,6 +27,11 @@ typedef struct bufReader {
 
 /* size returns the size of the underlying buffer.*/
 size_t size(bufReader* r);
+bufReader *newBufReader(char *buf, size_t len);
 void bufReaderFree(bufReader* r);
+void bufReaderSetError(bufReader *r, int errCode, const char *errStr);
+static char *seekNewLine(char *s, size_t len);
+char *readBytes(bufReader *r, unsigned int len);
+char *readLine(bufReader *r, int *_len);
 
 #endif /* __READER_H */
