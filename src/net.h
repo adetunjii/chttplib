@@ -1,5 +1,5 @@
 #ifndef __NET_H
-#define _NET_H
+#define __NET_H
 
 
 #define PORT 8080

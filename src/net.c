@@ -9,7 +9,6 @@
 
 #include "net.h"
 
-
 void *handle_client(void *arg) {
     int client_fd = *((int *) arg);
 
@@ -17,6 +16,7 @@ void *handle_client(void *arg) {
 
     // recieve request data from client and store into buffer.
     ssize_t bytes_recv = recv(client_fd, buf, BUFFER_SIZE, 0);
+    printf("%s\n", buf);
     if (bytes_recv < 0) {
         perror("Couldn't read client request");
         exit(EXIT_FAILURE);

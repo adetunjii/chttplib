@@ -125,16 +125,18 @@ static bool stringContainsCTLByte(char *str) {
 	return false;
 }
 
-static int parseURI(char *uri) {
-
+// TODO: extract into url.c file
+int parseURI(char *uri) {
 	if (uri == NULL) return HTTP_LIB_ERR;
-
 	if (stringContainsCTLByte(uri)) return invalid_ctl_err;
+
+	// extract the scheme, and the rest
+	// parse query string into 
 
     return 1;
 }
 
-static int readRequest(bufReader *r, request *req) {
+int readRequest(bufReader *r, request *req) {
 	char *p, *line;
 	int len;
 	
