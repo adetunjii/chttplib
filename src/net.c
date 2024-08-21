@@ -7,8 +7,8 @@
 #include <regex.h>
 #include <pthread.h>
 
-#define PORT 8080
-#define BUFFER_SIZE (1024*1024*10) //10MB
+#include "net.h"
+
 
 void *handle_client(void *arg) {
     int client_fd = *((int *) arg);
@@ -32,7 +32,7 @@ void *handle_client(void *arg) {
     }
 }
 
-int main(int argc, char **argv) {
+int startServer(void) {
     int fd;
     struct sockaddr_in addrinfo;
 
