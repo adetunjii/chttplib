@@ -216,7 +216,7 @@ int test_reader(void) {
 	reader = newBufReader(str, strlen(str));
 	if (reader == NULL) return -1;
 	
-	test("size() returns the size of the buffer", size(reader) == strlen(str))
+	test("size() returns the size of the buffer", size(reader) == strlen(str));
 
 	int len;
 	char *ln, *line;
@@ -226,8 +226,8 @@ int test_reader(void) {
 	strncpy(line, ln, len-1);
 	line[len] = '\0';
 
-	test("readLine() returns the correct length (including null terminator)", len == 15)
-	test("readLine() gets the content of the line up to \\r\\n", strncmp(line, "GET / HTTP/1.1", len) == 0)
+	test("readLine() returns the correct length (including null terminator)", len == 15);
+	test("readLine() gets the content of the line up to \\r\\n", strncmp(line, "GET / HTTP/1.1", len) == 0);
 
 	free(line);
 
@@ -235,7 +235,7 @@ int test_reader(void) {
 	char copy[5];
 	bytes = readBytes(reader, 5);
 	memcpy(copy, bytes, 5);
-	test("readBytes() reads n bytes", strcmp(copy, "Host:") == 0)
+	test("readBytes() reads n bytes", strcmp(copy, "Host:") == 0);
 
 	bufReaderFree(reader);
 
@@ -252,12 +252,12 @@ int test_reader(void) {
 
 	int result;
 	result = readRequest(reader, req);
-	test("readRequest() passes without errors", result == 0)
-	test("readRequest() parses request method", strcmp(req->method, "GET") == 0)
-	test("readRequest() parses uri", strcmp(req->request_url, "/hello") == 0)
-	test("readRequest() parses protocol", strcmp(req->proto, "HTTP/1.1") == 0)
-	test("readRequest() gets proto major and minor", req->proto_major == 1 && req->proto_minor == 1)
-	test ("isValidMethod() checks for valid methods", validMethod(req->method))
+	test("readRequest() passes without errors", result == 0);
+	test("readRequest() parses request method", strcmp(req->method, "GET") == 0);
+	test("readRequest() parses uri", strcmp(req->request_url, "/hello") == 0);
+	test("readRequest() parses protocol", strcmp(req->proto, "HTTP/1.1") == 0);
+	test("readRequest() gets proto major and minor", req->proto_major == 1 && req->proto_minor == 1);
+	test ("isValidMethod() checks for valid methods", validMethod(req->method));
 
 	bufReaderFree(reader);
 
@@ -274,8 +274,8 @@ int test_reader(void) {
 		
 		int result;
 		result = readRequest(reader, req);
-		test("readRequest() fails on malformed requests", req->error != 0)
-		test("readRequest() returns correct error string", memcmp(req->errStr, "malformed HTTP request 'GET /HTTP/1.1'", 38) == 0)
+		test("readRequest() fails on malformed requests", req->error != 0);
+		test("readRequest() returns correct error string", memcmp(req->errStr, "malformed HTTP request 'GET /HTTP/1.1'", 38) == 0);
 		
 		bufReaderFree(reader);
 
@@ -289,7 +289,7 @@ int test_reader(void) {
 
 		req = newRequest();
 		result = readRequest(reader,req);
-		test("readRequest() fails on invalid method", memcmp(req->errStr, "invalid method 'GETS'", 21) == 0)
+		test("readRequest() fails on invalid method", memcmp(req->errStr, "invalid method 'GETS'", 21) == 0);
 
 		bufReaderFree(reader);
 	}
@@ -298,7 +298,7 @@ int test_reader(void) {
 	char *url = strdup("https://example.com\x07");
 	result = parseURI(url, errstr);
 
-	test("parseURI() returns correct error string", memcmp(errstr, "url: invalid control characters in url", 37) == 0)
+	test("parseURI() returns correct error string", memcmp(errstr, "url: invalid control characters in url", 37) == 0);
 	
 	return 0;	
 }
