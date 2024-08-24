@@ -5,12 +5,12 @@
 #include "url.h"
 
 static bool stringContainsCTLByte(const char *str) {
-	for (size_t i = 0; i < strlen(str); i++) {
-		char c = str[i];
-		if (c < 0x20 || c == 0x07) return true;
-	}
+    for (size_t i = 0; i < strlen(str); i++) {
+        char c = str[i];
+        if (c < 0x20 || c == 0x07) return true;
+    }
 
-	return false;
+    return false;
 }
 
 int getScheme(const char *uri, char **scheme, char **path, char **err) {
@@ -18,10 +18,10 @@ int getScheme(const char *uri, char **scheme, char **path, char **err) {
 
     for (size_t i = 0; i < strlen(uri); i++) {
         char c = uri[i];
-        
-        if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'){
+
+        if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z') {
             // do nothing
-        } else if('0' <= c && c <= 9 || c == '+' || c == '-' || c == '.') {
+        } else if ('0' <= c && c <= 9 || c == '+' || c == '-' || c == '.') {
             if (i == 0) {
                 // scheme cannot start with these characters
                 *scheme = NULL;
@@ -60,12 +60,12 @@ int getScheme(const char *uri, char **scheme, char **path, char **err) {
 }
 
 int parseRequestURI(const char *rawURL, URL *url, char *errstr) {
-	if (rawURL == NULL) return -1;
-	
-	if (stringContainsCTLByte(rawURL)) {
-		strcpy(errstr, "url: invalid control characters in url");
-		return -1;
-	};
+    if (rawURL == NULL) return -1;
+
+    if (stringContainsCTLByte(rawURL)) {
+        strcpy(errstr, "url: invalid control characters in url");
+        return -1;
+    };
 
     char *scheme, *path, *err;
     int res;
@@ -98,7 +98,6 @@ int test_url(void) {
 
     fprintf(stderr, url->scheme);
     fprintf(stderr, url->path);
-
 
     return 0;
 }

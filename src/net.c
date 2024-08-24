@@ -10,7 +10,7 @@
 #include "net.h"
 
 void *handle_client(void *arg) {
-    int client_fd = *((int *) arg);
+    int client_fd = *((int *)arg);
 
     char *buf = (char *)malloc(BUFFER_SIZE * sizeof(char));
 
@@ -36,8 +36,9 @@ int startServer(void) {
     int fd;
     struct sockaddr_in addrinfo;
 
-    /* socket(domain (IPv4 | IPv6), type (SOCK_STREAM for tcp, SOCK_DGRAM for udp), 
-     * protocol (set the last field to 0 to choose the default protocol for the sock type) ) */
+    /* socket(domain (IPv4 | IPv6), type (SOCK_STREAM for tcp, SOCK_DGRAM for
+     * udp), protocol (set the last field to 0 to choose the default protocol
+     * for the sock type) ) */
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("Socket failed");
         exit(EXIT_FAILURE);
@@ -64,9 +65,7 @@ int startServer(void) {
         socklen_t client_addr_len = sizeof(client_addr);
         int *client_fd = malloc(sizeof(int));
 
-        if ((*client_fd = accept(fd, 
-                                (struct sockaddr *)&client_addr, 
-                                &client_addr_len)) < 0) {
+        if ((*client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_addr_len)) < 0) {
             perror("accept failed");
             continue;
         }
