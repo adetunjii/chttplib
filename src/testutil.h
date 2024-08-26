@@ -16,5 +16,5 @@ int test_num = 0;
             printf("FAILED\n");                                                                                        \
             failed++;                                                                                                  \
         }                                                                                                              \
-    } while (0);
+    } while (0)
 #endif // __TESTUTIL_H

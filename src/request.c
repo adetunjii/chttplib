@@ -64,10 +64,11 @@ static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
         }
     }
 
-    *req = (request
-    ){.method = malloc(sizeof(char) * strlen(tokens[0])),
-      .request_url = malloc(sizeof(char) * strlen(tokens[1])),
-      .proto = malloc(sizeof(char) * strlen(tokens[2]))};
+    *req = (request){
+        .method = malloc(sizeof(char) * strlen(tokens[0])),
+        .request_url = malloc(sizeof(char) * strlen(tokens[1])),
+        .proto = malloc(sizeof(char) * strlen(tokens[2]))
+    };
 
     if (req->method == NULL || req->request_url == NULL || req->proto == NULL) {
         return CHTTP_ERR;
@@ -83,15 +84,15 @@ static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
 static bool validMethod(char *method) {
     if (strlen(method) > 0) {
         /*
-            Method         = "OPTIONS"                ; Section 9.2
-                            | "GET"                    ; Section 9.3
-                            | "HEAD"                   ; Section 9.4
-                            | "POST"                   ; Section 9.5
-                            | "PUT"                    ; Section 9.6
-                            | "DELETE"                 ; Section 9.7
-                            | "TRACE"                  ; Section 9.8
-                            | "CONNECT"                ; Section 9.9
-                            | extension-method
+            Method  = "OPTIONS"                ; Section 9.2
+                    | "GET"                    ; Section 9.3
+                    | "HEAD"                   ; Section 9.4
+                    | "POST"                   ; Section 9.5
+                    | "PUT"                    ; Section 9.6
+                    | "DELETE"                 ; Section 9.7
+                    | "TRACE"                  ; Section 9.8
+                    | "CONNECT"                ; Section 9.9
+                    | extension-method
         */
         const char *methods[] = {"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "CONNECT", "PATCH"};
 
@@ -137,10 +138,9 @@ char *badStringError(const char *str, char *err, size_t _len) {
 }
 
 int readRequest(bufReader *r, request *req) {
-    char *p, *line, *dup;
+    char *p, *line, *dup, err;
     int len;
-
-    char *err;
+    URL *url;
 
     if ((p = readLine(r, &len)) != NULL) {
         if (len > 0) {
@@ -175,7 +175,8 @@ int readRequest(bufReader *r, request *req) {
                 goto error;
             }
 
-            int major, minor, ok;
+            int major, minor;
+            bool ok;
             ok = parseHTTPVersion(req->proto, &major, &minor);
             if (!ok) {
                 __requestSetError(
@@ -186,6 +187,15 @@ int readRequest(bufReader *r, request *req) {
 
             req->proto_major = major;
             req->proto_minor = minor;
+            
+            url = malloc(sizeof(URL));
+        
+            if (parseRequestURI(req->request_url, url, err) == -1) {
+                __requestSetError(
+                    req, CHTTP_PROTO_ERR, err
+                );
+                goto error;
+            }
         }
     }
 
@@ -194,6 +204,7 @@ int readRequest(bufReader *r, request *req) {
 error:
     free(line);
     free(dup);
+    free(url);
     return CHTTP_ERR;
 }
 

@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include "url.h"
 
+
+
 static bool stringContainsCTLByte(const char *str) {
     for (size_t i = 0; i < strlen(str); i++) {
         char c = str[i];

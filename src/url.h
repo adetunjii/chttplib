@@ -27,4 +27,7 @@ void toLowercase(char *str) {
     for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
 }
 
+int getScheme(const char *uri, char **scheme, char **path, char **err);
+int parseRequestURI(const char *rawURL, URL *url, char *errstr);
+
 #endif /* __URL_H*/
