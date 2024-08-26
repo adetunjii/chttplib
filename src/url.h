@@ -1,9 +1,8 @@
 #ifndef __URL_H
 #define __URL_H
 
+#include <ctype.h>
 #include <stdbool.h>
-
-typedef enum { empty_err = 1, invalid_ctl_err = 2, scheme_err = 3, segment_err = 4 } urlErr;
 
 typedef struct userinfo {
     char *username;
@@ -21,13 +20,13 @@ typedef struct url {
 } URL;
 
 
-void toLowercase(char *str) {
+static inline void toLowercase(char *str) {
     size_t len = strlen(str);
 
     for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
 }
 
-int getScheme(const char *uri, char **scheme, char **path, char **err);
-int parseRequestURI(const char *rawURL, URL *url, char *errstr);
+bool getScheme(const char *uri, char **scheme, char **path, char **err);
+extern bool parseRequestURI(const char *rawURL, URL *url, char *errstr);
 
 #endif /* __URL_H*/

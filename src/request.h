@@ -1,11 +1,11 @@
-#ifndef __REQUEST_H
-#define __REQUEST_H
+#ifndef REQUEST_H
+#define REQUEST_H
 
 #define MAX_REQ_TOKENS 3 /* first request line parts */
 
 #include "url.h"
 
-typedef struct request {
+typedef struct Request {
     int error;        /* set to 0 when there are no errors. */
     char errStr[128]; /* error string representation. */
 
@@ -22,6 +22,8 @@ typedef struct request {
 
     URL *url;
     char *host;
-} request;
+} Request;
 
-#endif /* __REQUEST_H */
+// static Request *newReqest(void);
+
+#endif /* REQUEST_H */

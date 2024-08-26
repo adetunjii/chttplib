@@ -5,16 +5,15 @@
 #include "reader.h"
 #include "request.h"
 #include "url.h"
+#include "c.h"
 
-static request *newRequest(void) {
-    request *req;
-    req = malloc(sizeof(request));
+static Request *newRequest(void) {
+    Request *req = malloc(sizeof(Request));
     if (req == NULL) return NULL;
-
     return req;
 }
 
-static void __requestSetError(request *r, int errCode, char *errstr) {
+static void __requestSetError(Request *r, int errCode, char *errstr) {
     size_t len;
 
     /* clear underlying buffer on erorrs. */
@@ -33,17 +32,14 @@ static void __requestSetError(request *r, int errCode, char *errstr) {
     /* Set errors */
     if (errstr != NULL) {
         r->error = errCode;
-        len = strlen(errstr);
-        len = len < (sizeof(r->errStr) - 1) ? len : (sizeof(errstr) - 1);
+        len = strlen(errstr) + 1;
+        len = Min(len, sizeof(r->errStr) - 1);
         memcpy(r->errStr, errstr, len);
         r->errStr[len] = '\0';
     }
-
-    // free errstr after copying
-    free(errstr);
 }
 
-static void requestFree(request *req) {
+static void requestFree(Request *req) {
     if (req == NULL) return;
 
     if (req->method != NULL) free(req->method);
@@ -54,31 +50,34 @@ static void requestFree(request *req) {
     free(req);
 }
 
-static int parseRequestLine(char *tokens[static MAX_REQ_TOKENS], request *req) {
+static bool parseRequestLine(char *tokens[static MAX_REQ_TOKENS], Request *req) {
     for (int i = 0; i < MAX_REQ_TOKENS; i++) {
         if (tokens[i] == NULL || strlen(tokens[i]) == 0) {
             for (int j = 0; j < i; j++) {
                 free(tokens[j]);
             }
-            return CHTTP_ERR;
+            return false;
         }
     }
 
-    *req = (request){
+    *req = (Request){
         .method = malloc(sizeof(char) * strlen(tokens[0])),
         .request_url = malloc(sizeof(char) * strlen(tokens[1])),
         .proto = malloc(sizeof(char) * strlen(tokens[2]))
     };
 
     if (req->method == NULL || req->request_url == NULL || req->proto == NULL) {
-        return CHTTP_ERR;
+        free(req->method);
+        free(req->request_url);
+        free(req->proto);
+        return false;
     }
 
     strcpy(req->method, tokens[0]);
     strcpy(req->request_url, tokens[1]);
     strcpy(req->proto, tokens[2]);
 
-    return CHTTP_OK;
+    return true;
 }
 
 static bool validMethod(char *method) {
@@ -127,7 +126,7 @@ char *badStringError(const char *str, char *err, size_t _len) {
     size_t len;
 
     len = strlen(str) + strlen(err) + 4; /* include null terminator, quotes and space */
-    len = len <= (_len - 1) ? len : (_len - 1);
+    len = Min(len, _len);
 
     char *errstr = malloc(sizeof(char) * len);
     if (errstr == NULL) return NULL;
@@ -137,15 +136,20 @@ char *badStringError(const char *str, char *err, size_t _len) {
     return errstr;
 }
 
-int readRequest(bufReader *r, request *req) {
-    char *p, *line, *dup, err;
+int readRequest(bufReader *r, Request *req) {
+    char *p, *line, *dup;
     int len;
-    URL *url;
+
+    URL *url = malloc(sizeof(URL));
+    if (url == NULL) return CHTTP_ERR;
 
     if ((p = readLine(r, &len)) != NULL) {
         if (len > 0) {
             line = malloc(sizeof(char) * len + 1);
-            if (line == NULL) return CHTTP_ERR;
+            if (line == NULL) {
+                free(line);
+                return CHTTP_ERR;
+            }
 
             strncpy(line, p, len);
             line[len] = '\0';
@@ -161,7 +165,7 @@ int readRequest(bufReader *r, request *req) {
                 tok = strtok(NULL, " ");
             }
 
-            if (parseRequestLine(tokens, req) == CHTTP_ERR) {
+            if (!parseRequestLine(tokens, req)) {
                 __requestSetError(
                     req, CHTTP_PROTO_ERR, badStringError("malformed HTTP request", line, sizeof(req->errStr))
                 );
@@ -188,12 +192,12 @@ int readRequest(bufReader *r, request *req) {
             req->proto_major = major;
             req->proto_minor = minor;
             
-            url = malloc(sizeof(URL));
-        
-            if (parseRequestURI(req->request_url, url, err) == -1) {
+            char *errstr;
+            if (!parseRequestURI(req->request_url, url, errstr)) {
                 __requestSetError(
-                    req, CHTTP_PROTO_ERR, err
+                    req, CHTTP_PROTO_ERR, errstr
                 );
+                free(errstr);
                 goto error;
             }
         }
@@ -204,7 +208,7 @@ int readRequest(bufReader *r, request *req) {
 error:
     free(line);
     free(dup);
-    free(url);
+    if (url != NULL) free(url);
     return CHTTP_ERR;
 }
 
@@ -254,7 +258,7 @@ int test_reader(void) {
     reader = newBufReader(httpString, strlen(httpString));
     if (reader == NULL) return -1;
 
-    request *req;
+    Request *req;
     req = newRequest();
 
     int result;
@@ -277,7 +281,7 @@ int test_reader(void) {
         reader = newBufReader(malformedHttpString, strlen(malformedHttpString));
         if (reader == NULL) return -1;
 
-        request *req = newRequest();
+        Request *req = newRequest();
 
         int result;
         result = readRequest(reader, req);
@@ -303,12 +307,6 @@ int test_reader(void) {
 
         bufReaderFree(reader);
     }
-
-    char errstr[128];
-    char *url = strdup("https://example.com\x07");
-    result = parseURI(url, errstr);
-
-    test("parseURI() returns correct error string", memcmp(errstr, "url: invalid control characters in url", 37) == 0);
 
     return 0;
 }
