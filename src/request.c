@@ -167,14 +167,16 @@ int readRequest(bufReader *r, Request *req) {
 
             if (!parseRequestLine(tokens, req)) {
                 __requestSetError(
-                    req, CHTTP_PROTO_ERR, badStringError("malformed HTTP request", line, sizeof(req->errStr))
+                    req, CHTTP_PROTO_ERR, 
+                    badStringError("malformed HTTP request", line, sizeof(req->errStr))
                 );
                 goto error;
             }
 
             if (!validMethod(req->method)) {
                 __requestSetError(
-                    req, CHTTP_PROTO_ERR, badStringError("invalid method", req->method, sizeof(req->errStr))
+                    req, CHTTP_PROTO_ERR, 
+                    badStringError("invalid method", req->method, sizeof(req->errStr))
                 );
                 goto error;
             }
@@ -184,7 +186,8 @@ int readRequest(bufReader *r, Request *req) {
             ok = parseHTTPVersion(req->proto, &major, &minor);
             if (!ok) {
                 __requestSetError(
-                    req, CHTTP_PROTO_ERR, badStringError("invalid HTTP version", req->proto, sizeof(req->errStr))
+                    req, CHTTP_PROTO_ERR, 
+                    badStringError("invalid HTTP version", req->proto, sizeof(req->errStr))
                 );
                 goto error;
             }
@@ -208,7 +211,7 @@ int readRequest(bufReader *r, Request *req) {
 error:
     free(line);
     free(dup);
-    if (url != NULL) free(url);
+    free(url);
     return CHTTP_ERR;
 }
 

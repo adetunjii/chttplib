@@ -75,11 +75,11 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
         return false;
     }
 
-    // TODO: null checks
-    // if (scheme != NULL) toLowercase(scheme);
-
-    // url->scheme = strdup(scheme);
-    // url->path = strdup(path);
+    if (scheme != NULL) {
+        toLowercase(scheme);
+        url->scheme = strdup(scheme);
+    }
+    url->path = strdup(path);
 
     return true;
 }
