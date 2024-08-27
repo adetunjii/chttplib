@@ -1,11 +1,7 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-
+#include "chttplib.h"
 #include "reader.h"
 #include "request.h"
 #include "url.h"
-#include "c.h"
 
 static Request *newRequest(void) {
     Request *req = malloc(sizeof(Request));
@@ -236,7 +232,7 @@ int test_reader(void) {
     char *ln, *line;
     ln = readLine(reader, &len); // points to the underlying buffer, we don't want to modify
     len += 1;
-    line = malloc(sizeof(char) * len);
+    line = (char *) palloc(sizeof(char) * len);
     strncpy(line, ln, len - 1);
     line[len] = '\0';
 

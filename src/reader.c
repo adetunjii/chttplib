@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include "chttplib.h"
 #include "reader.h"
 
 void bufReaderSetError(bufReader *r, int errCode, const char *errStr) {

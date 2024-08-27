@@ -1,5 +1,5 @@
-#ifndef __TESTUTIL_H
-#define __TESTUTIL_H
+#ifndef TESTUTIL_H
+#define TESTUTIL_H
 
 int passed = 0;
 int failed = 0;
@@ -17,4 +17,4 @@ int test_num = 0;
             failed++;                                                                                                  \
         }                                                                                                              \
     } while (0)
-#endif // __TESTUTIL_H
+#endif // TESTUTIL_H

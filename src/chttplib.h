@@ -1,5 +1,13 @@
-#ifndef C_H
-#define C_H
+#ifndef CHTTPLIB_H
+#define CHTTPLIB_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#include "ehandle.h"
+#include "palloc.h"
 
 /* Widely used macros */
 
@@ -15,4 +23,4 @@
  */
 #define Min(a, b)   ((a) < (b) ? (a) : (b))
 
-#endif /* C_H */
+#endif /* CHTTPLIB_H */
