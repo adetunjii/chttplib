@@ -15,7 +15,7 @@ static bool stringContainsCTLByte(const char *str) {
     return false;
 }
 
-bool getScheme(const char *uri, char **scheme, char **path, char **err) {
+void getScheme(const char *uri, char **scheme, char **path, char **err) {
     if (uri == NULL) return false;
 
     for (size_t i = 0; i < strlen(uri); i++) {
@@ -29,7 +29,6 @@ bool getScheme(const char *uri, char **scheme, char **path, char **err) {
                 *scheme = NULL;
                 *path = strdup(uri);
                 *err = NULL;
-                return true;
             }
         } else if (c == ':') {
             if (i == 0) {
@@ -37,20 +36,18 @@ bool getScheme(const char *uri, char **scheme, char **path, char **err) {
                 *scheme = NULL;
                 *path = NULL;
                 *err = strdup("missing protocol scheme");
-                return false;
             }
 
             // valid scheme
             *scheme = strndup(uri, i);
+            toLowercase(*scheme);
             *path = strdup(uri + i + 1);
             *err = NULL;
-            return true;
         } else {
             // default case
             *scheme = NULL;
             *path = strdup(uri);
             *err = NULL;
-            return true;
         }
     }
 
@@ -58,10 +55,11 @@ bool getScheme(const char *uri, char **scheme, char **path, char **err) {
     *scheme = NULL;
     *path = strdup(uri);
     *err = NULL;
-    return 0;
 }
 
 bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
+    char *err;
+
     if (rawURL == NULL) return false;
 
     if (stringContainsCTLByte(rawURL)) {
@@ -69,18 +67,11 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
         return false;
     };
 
-    char *scheme, *path, *err;
-
-    if(!getScheme(rawURL, &scheme, &path, &err)) {
-        if(err != NULL) strcpy(errstr, err);
+    getScheme(rawURL, &url->scheme, &url->path, &err);
+    if (err != NULL) {
+        strcpy(errstr, err);
         return false;
     }
-
-    if (scheme != NULL) {
-        toLowercase(scheme);
-        url->scheme = strdup(scheme);
-    }
-    url->path = strdup(path);
 
     // parse request path
 
@@ -95,13 +86,13 @@ int test_url(void) {
     URL *url = (URL *) palloc(sizeof(URL));
     char errstr[128];
 
-    int res = parseRequestURI("//example.com", url, errstr);
+    int res = parseRequestURI("https://example.com", url, errstr);
     if (res == false) {
         fprintf(stderr, "%s\n", errstr);
         return -1;
     }
 
-    // fprintf(stderr, "%s",url->scheme);
+    fprintf(stderr, "%s\n",url->scheme);
     fprintf(stderr, "%s", url->path);
 
     return 0;
