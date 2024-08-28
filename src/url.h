@@ -26,7 +26,7 @@ static inline void toLowercase(char *str) {
     for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
 }
 
-bool getScheme(const char *uri, char **scheme, char **path, char **err);
+extern bool getScheme(const char *uri, char **scheme, char **path, char **err);
 extern bool parseRequestURI(const char *rawURL, URL *url, char *errstr);
 
 #endif /* __URL_H*/
