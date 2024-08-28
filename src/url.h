@@ -4,11 +4,11 @@
 #include <ctype.h>
 #include <stdbool.h>
 
-typedef struct userinfo {
+typedef struct Userinfo {
     char *username;
     char *password;
     bool passwordSet;
-} userinfo;
+} Userinfo;
 
 typedef struct url {
     char *scheme;
@@ -16,10 +16,14 @@ typedef struct url {
     char *host;     // host or host:port
     char *path;     // path (relative paths might not have leading slash)
     char *rawQuery; // encoded query values without the '?'
-    userinfo *user;
+    Userinfo *user;
 } URL;
 
 extern void getScheme(const char *uri, char **scheme, char **path, char **err);
 extern bool parseRequestURI(const char *rawURL, URL *url, char *errstr);
+extern bool isValidPort(const char *port);
+extern bool parseHost(const char *host_addr, char **host, char **errstr);
+extern bool getAuthority(char *authority, Userinfo *userinfo, 
+                         char **host, char **errstr);
 
 #endif /* __URL_H*/

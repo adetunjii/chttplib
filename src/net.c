@@ -30,6 +30,8 @@ void *handle_client(void *arg) {
         perror("Failed to parse request");
         exit(EXIT_FAILURE);
     }
+
+    exit(EXIT_FAILURE);
 }
 
 int startServer(void) {

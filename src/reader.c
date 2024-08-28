@@ -59,7 +59,6 @@ static char *seekNewLine(char *s, size_t len) {
 
     while ((ret = memchr(s, '\r', len)) != NULL) {
         if (ret[1] == '\n') break;
-
         len -= (ret - s) + 1;
         s = ret;
     }
@@ -91,7 +90,8 @@ char *readLine(BufReader *r, int *_len) {
 void bufReaderFree(BufReader *r) {
     if (r == NULL) return;
     
-    if (r->buf != NULL) pfree(r->buf);
+    if (r->buf != NULL)
+        pfree(r->buf);
     r->pos = r->len = 0;
     pfree(r);
 }

@@ -124,21 +124,22 @@ char *badStringError(const char *str, char *err, size_t _len) {
 }
 
 int readRequest(BufReader *r, Request *req) {
-    char *p, *line, *dup;
-    int len;
+    char *p, 
+         *line, 
+         *dup,
+         *tokens[MAX_REQ_TOKENS];
+    
+    int i = 0, len;
 
-    URL *url = palloc(sizeof(URL));
+    URL *url = (URL *) palloc(sizeof(URL));
 
     if ((p = readLine(r, &len)) != NULL) {
         if (len > 0) {
-            line = palloc(sizeof(char) * len + 1);
-
+            line = (char *) palloc(sizeof(char) * len + 1);
             strncpy(line, p, len);
             line[len] = '\0';
 
-            dup = strdup(line);
-            char *tokens[MAX_REQ_TOKENS];
-            int i = 0;
+            dup = strdup(line);            
 
             char *tok = strtok(dup, " ");
             while (tok != NULL && i < MAX_REQ_TOKENS) {
@@ -191,9 +192,9 @@ int readRequest(BufReader *r, Request *req) {
     return CHTTP_OK;
 
 error:
-    free(line);
-    free(dup);
-    free(url);
+    pfree(line);
+    pfree(dup);
+    pfree(url);
     return CHTTP_ERR;
 }
 

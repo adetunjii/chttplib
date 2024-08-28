@@ -46,5 +46,13 @@ bool has_prefix(const char *str, const char *prefix) {
     size_t len_s = strlen(str);
     size_t len_p = strlen(prefix);
 
-    return len_s > len_p && strncmp(str, prefix, len_p) == 0;
+    return len_s >= len_p && strncmp(str, prefix, len_p) == 0;
+}
+
+bool has_suffix(const char *str, const char *suffix) {
+    size_t len_str = strlen(str);
+    size_t len_suf = strlen(suffix);
+
+    return len_str >= len_suf && 
+            strncmp(str + (len_str - len_suf), suffix, len_suf) == 0;
 }
