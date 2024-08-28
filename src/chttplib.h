@@ -26,7 +26,17 @@
 static inline void toLowercase(char *str) {
     size_t len = strlen(str);
 
-    for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
+    if (len > 0) {
+        for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
+    }
+}
+
+static inline void toUppercase(char *str) {
+    size_t len = strlen(str);
+
+    if (len > 0) {
+        for (size_t i = 0; i < len; i++) str[i] = toupper(str[i]);
+    }
 }
 
 #endif /* CHTTPLIB_H */
