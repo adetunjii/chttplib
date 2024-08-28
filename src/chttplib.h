@@ -23,4 +23,10 @@
  */
 #define Min(a, b)   ((a) < (b) ? (a) : (b))
 
+static inline void toLowercase(char *str) {
+    size_t len = strlen(str);
+
+    for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
+}
+
 #endif /* CHTTPLIB_H */

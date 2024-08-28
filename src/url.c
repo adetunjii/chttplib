@@ -3,6 +3,7 @@
 #include <strings.h>
 #include <ctype.h>
 
+#include "chttplib.h"
 #include "url.h"
 
 static bool stringContainsCTLByte(const char *str) {
@@ -81,6 +82,8 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
     }
     url->path = strdup(path);
 
+    // parse request path
+
     return true;
 }
 
@@ -89,7 +92,7 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
 #include "testutil.h"
 
 int test_url(void) {
-    URL *url = malloc(sizeof(URL));
+    URL *url = (URL *) palloc(sizeof(URL));
     char errstr[128];
 
     int res = parseRequestURI("//example.com", url, errstr);
