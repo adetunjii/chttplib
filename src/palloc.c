@@ -8,6 +8,9 @@ void *palloc(size_t sz) {
 		ehandle(ERROR, errmsg("invalid memory size requested %zu", sz));
 	}
 	mem = malloc(sz);
+	if (mem == NULL) {
+		ehandle(ERROR, errmsg("out of memory"));
+	}
 	return mem;
 }
 

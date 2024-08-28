@@ -26,6 +26,6 @@ typedef struct Request {
 } Request;
 
 extern Request *newRequest(void);
-extern int readRequest(bufReader *r, Request *req);
+extern int readRequest(BufReader *r, Request *req);
 
 #endif /* REQUEST_H */

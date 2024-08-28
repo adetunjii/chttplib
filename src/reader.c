@@ -5,7 +5,7 @@
 #include "chttplib.h"
 #include "reader.h"
 
-void bufReaderSetError(bufReader *r, int errCode, const char *errStr) {
+void bufReaderSetError(BufReader *r, int errCode, const char *errStr) {
     size_t len;
 
     /* clear underlying buffer on erorrs. */
@@ -21,12 +21,9 @@ void bufReaderSetError(bufReader *r, int errCode, const char *errStr) {
     r->errStr[len] = '\0';
 }
 
-bufReader *newBufReader(char *buf, size_t len) {
-    bufReader *r = malloc(sizeof(bufReader));
-    if (r == NULL) return NULL;
-
-    r->buf = malloc(sizeof(char) * DEFAULT_BUFFER_SIZE);
-    if (r->buf == NULL) goto error;
+BufReader *newBufReader(char *buf, size_t len) {
+    BufReader *r = (BufReader *) palloc(sizeof(BufReader));
+    r->buf = palloc(sizeof(char) * DEFAULT_BUFFER_SIZE);
 
     if (buf != NULL) {
         memcpy(r->buf, buf, len);
@@ -35,18 +32,14 @@ bufReader *newBufReader(char *buf, size_t len) {
     }
 
     return r;
-
-error:
-    free(r);
-    return NULL;
 }
 
 /* size returns the length of the underlying buffer. */
-size_t size(bufReader *r) {
+size_t size(BufReader *r) {
     return r->len;
 }
 
-char *readBytes(bufReader *r, unsigned int len) {
+char *readBytes(BufReader *r, unsigned int len) {
     char *p;
     if ((r->len - r->pos) >= len) {
         p = r->buf + r->pos;
@@ -78,7 +71,7 @@ static char *seekNewLine(char *s, size_t len) {
  * It also stores the length of the line (excluding the
  * \r\n sequence) in _len.
  */
-char *readLine(bufReader *r, int *_len) {
+char *readLine(BufReader *r, int *_len) {
     char *p, *s;
     int len;
 
@@ -95,10 +88,10 @@ char *readLine(bufReader *r, int *_len) {
     return NULL;
 }
 
-void bufReaderFree(bufReader *r) {
+void bufReaderFree(BufReader *r) {
     if (r == NULL) return;
     
-    if (r->buf != NULL) free(r->buf);
+    if (r->buf != NULL) pfree(r->buf);
     r->pos = r->len = 0;
-    free(r);
+    pfree(r);
 }

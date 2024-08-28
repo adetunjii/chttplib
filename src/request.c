@@ -55,17 +55,10 @@ static bool parseRequestLine(char *tokens[static MAX_REQ_TOKENS], Request *req) 
     }
 
     *req = (Request){
-        .method = malloc(sizeof(char) * strlen(tokens[0])),
-        .request_url = malloc(sizeof(char) * strlen(tokens[1])),
-        .proto = malloc(sizeof(char) * strlen(tokens[2]))
+        .method = palloc(sizeof(char) * strlen(tokens[0])),
+        .request_url = palloc(sizeof(char) * strlen(tokens[1])),
+        .proto = palloc(sizeof(char) * strlen(tokens[2]))
     };
-
-    if (req->method == NULL || req->request_url == NULL || req->proto == NULL) {
-        free(req->method);
-        free(req->request_url);
-        free(req->proto);
-        return false;
-    }
 
     strcpy(req->method, tokens[0]);
     strcpy(req->request_url, tokens[1]);
@@ -122,7 +115,7 @@ char *badStringError(const char *str, char *err, size_t _len) {
     len = strlen(str) + strlen(err) + 4; /* include null terminator, quotes and space */
     len = Min(len, _len);
 
-    char *errstr = malloc(sizeof(char) * len);
+    char *errstr = palloc(sizeof(char) * len);
     if (errstr == NULL) return NULL;
 
     snprintf(errstr, len, "%s '%s'", str, err);
@@ -130,20 +123,15 @@ char *badStringError(const char *str, char *err, size_t _len) {
     return errstr;
 }
 
-int readRequest(bufReader *r, Request *req) {
+int readRequest(BufReader *r, Request *req) {
     char *p, *line, *dup;
     int len;
 
-    URL *url = malloc(sizeof(URL));
-    if (url == NULL) return CHTTP_ERR;
+    URL *url = palloc(sizeof(URL));
 
     if ((p = readLine(r, &len)) != NULL) {
         if (len > 0) {
-            line = malloc(sizeof(char) * len + 1);
-            if (line == NULL) {
-                free(line);
-                return CHTTP_ERR;
-            }
+            line = palloc(sizeof(char) * len + 1);
 
             strncpy(line, p, len);
             line[len] = '\0';
@@ -194,7 +182,7 @@ int readRequest(bufReader *r, Request *req) {
                 __requestSetError(
                     req, CHTTP_PROTO_ERR, errstr
                 );
-                free(errstr);
+                pfree(errstr);
                 goto error;
             }
         }
@@ -220,7 +208,7 @@ int test_reader(void) {
                 "User-Agent: curl/8.6.0\r\n"
                 "Accept: */*";
 
-    bufReader *reader;
+    BufReader *reader;
     reader = newBufReader(str, strlen(str));
     if (reader == NULL) return -1;
 
@@ -237,7 +225,7 @@ int test_reader(void) {
     test("readLine() returns the correct length (including null terminator)", len == 15);
     test("readLine() gets the content of the line up to \\r\\n", strncmp(line, "GET / HTTP/1.1", len) == 0);
 
-    free(line);
+    pfree(line);
 
     char *bytes;
     char copy[5];
