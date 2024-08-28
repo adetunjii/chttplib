@@ -4,6 +4,7 @@
 #define MAX_REQ_TOKENS 3 /* first request line parts */
 
 #include "url.h"
+#include "reader.h"
 
 typedef struct Request {
     int error;        /* set to 0 when there are no errors. */
@@ -24,6 +25,7 @@ typedef struct Request {
     char *host;
 } Request;
 
-// static Request *newReqest(void);
+extern Request *newRequest(void);
+extern int readRequest(bufReader *r, Request *req);
 
 #endif /* REQUEST_H */

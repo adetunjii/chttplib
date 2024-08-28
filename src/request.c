@@ -1,9 +1,7 @@
 #include "chttplib.h"
-#include "reader.h"
 #include "request.h"
-#include "url.h"
 
-static Request *newRequest(void) {
+Request *newRequest(void) {
     Request *req = malloc(sizeof(Request));
     if (req == NULL) return NULL;
     return req;

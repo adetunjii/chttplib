@@ -97,9 +97,8 @@ char *readLine(bufReader *r, int *_len) {
 
 void bufReaderFree(bufReader *r) {
     if (r == NULL) return;
-
+    
     if (r->buf != NULL) free(r->buf);
-
     r->pos = r->len = 0;
     free(r);
 }

@@ -18,7 +18,7 @@
 #define WARNING		3
 #define ERROR		4
 
-char *errmsg(const char *fmt, ...);
+extern char *errmsg(const char *fmt, ...);
 extern void write_stderr(const char *errmsg, size_t len);
 
 // TODO: improve error handling.
