@@ -5,11 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "ehandle.h"
 #include "palloc.h"
 
-/* Widely used macros */
+/* Widely used macros and functions */
 
 /* 
  *  Max
@@ -22,21 +23,5 @@
  *      Returns the minimum of two numbers.
  */
 #define Min(a, b)   ((a) < (b) ? (a) : (b))
-
-static inline void toLowercase(char *str) {
-    size_t len = strlen(str);
-
-    if (len > 0) {
-        for (size_t i = 0; i < len; i++) str[i] = tolower(str[i]);
-    }
-}
-
-static inline void toUppercase(char *str) {
-    size_t len = strlen(str);
-
-    if (len > 0) {
-        for (size_t i = 0; i < len; i++) str[i] = toupper(str[i]);
-    }
-}
 
 #endif /* CHTTPLIB_H */

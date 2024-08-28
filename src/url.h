@@ -19,7 +19,7 @@ typedef struct url {
     userinfo *user;
 } URL;
 
-extern bool getScheme(const char *uri, char **scheme, char **path, char **err);
+extern void getScheme(const char *uri, char **scheme, char **path, char **err);
 extern bool parseRequestURI(const char *rawURL, URL *url, char *errstr);
 
 #endif /* __URL_H*/
