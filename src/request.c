@@ -109,11 +109,11 @@ static bool parseHTTPVersion(char *version, int *major, int *minor) {
     }
 }
 
-char *badStringError(const char *str, char *err, size_t _len) {
+char *badStringError(const char *str, char *err, size_t maxlen) {
     size_t len;
 
     len = strlen(str) + strlen(err) + 4; /* include null terminator, quotes and space */
-    len = Min(len, _len);
+    len = Min(len, maxlen);
 
     char *errstr = palloc(sizeof(char) * len);
     if (errstr == NULL) return NULL;

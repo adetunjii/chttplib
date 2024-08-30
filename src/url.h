@@ -19,6 +19,11 @@ typedef struct url {
     Userinfo *user;
 } URL;
 
+enum encoding {
+    UNUSED = 0,
+    ENCODE_HOST = 1
+};
+
 extern void getScheme(const char *uri, char **scheme, char **path, char **err);
 extern bool parseRequestURI(const char *rawURL, URL *url, char *errstr);
 extern bool isValidPort(const char *port);

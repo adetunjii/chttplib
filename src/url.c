@@ -2,10 +2,15 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <ctype.h>
+#include <stddef.h>
 
 #include "palloc.h"
 #include "url.h"
 #include "utils/stringutil.h"
+
+static int unhex(char c);
+static void unescape(char *dest, const char *src,
+                     enum encoding mode, char **errstr);
 
 void getScheme(const char *uri, char **scheme, char **path, char **err) {
     if (uri == NULL) return;
@@ -67,10 +72,12 @@ bool isValidPort(const char *port) {
     return true;
 }
 
+/* TODO: parseHost should return */
 bool parseHost(const char *host_addr, char **host, char **errstr) {
+    *host = (char *) palloc(sizeof(char) * strlen(host_addr));
     char *port = strchr(host_addr, ':');
     if (port == NULL) {
-        *host = strdup(host_addr);
+        unescape(*host, host_addr, UNUSED, errstr);
         return true;
     } 
 
@@ -81,7 +88,7 @@ bool parseHost(const char *host_addr, char **host, char **errstr) {
         return false;
     }
 
-    *host = strdup(host_addr);
+    unescape(*host, host_addr, UNUSED, errstr);
     return true;
 }
 
@@ -142,11 +149,56 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
 
         userinfo = (Userinfo *) palloc(sizeof(Userinfo));
         getAuthority(authority, userinfo, &url->host, &err);
-
-
     }
 
     return true;
+}
+
+static int unhex(char c) {
+    if ('0' <= c && c <= '9') return c - '0';
+    if ('a' <= c && c <= 'f') return c - 'a' + 10;
+    if ('A' <= c && c <= 'F') return c - 'A' + 10;
+    return 0;
+}
+
+static void unescape(char *dest, const char *src, 
+                     enum encoding mode, char **errstr) {
+    char c;
+    int a, b, n; 
+    char enc[3];
+
+    do {
+        c = *src++;
+        switch(c) {
+        case '%': 
+            if (!isxdigit(src[0]) || !isxdigit(src[1]))
+                // goto error;
+            
+            enc[0] = '%';
+            enc[1] = src[0];
+            enc[2] = src[1];
+            
+            // %-encoded string is allowed for non-ASCII characters.
+            if (mode == ENCODE_HOST && unhex(src[0]) < 8 && strcmp(enc, "%25") != 0) {
+                // goto error;    
+            }
+
+            a = unhex(src[0]);
+            b = unhex(src[1]);
+            c = 16 * a + b;
+            src += 2;
+        }
+        *dest++ = c;
+    } while(c);
+
+    *dest = '\0';
+    return;
+
+error:
+    n = snprintf(NULL, 0, "invalid URL escape '%s'\n", enc);
+    *errstr = (char *) palloc(n + 1);
+    sprintf(*errstr, "invalid URL escape '%s'\n", enc);
+    return;
 }
 
 #if defined(TEST_URL)
@@ -155,7 +207,6 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
 int test_url(void) {
     URL *url = (URL *) palloc(sizeof(URL));
     char errstr[128];
-
 
     if (!parseRequestURI("https://example.com?foo=bar", url, errstr)) {
         return -1;
@@ -172,6 +223,11 @@ int test_url(void) {
 
     fprintf(stderr, "%s %s\n", userinfo->username, userinfo->password);
     fprintf(stderr, "Host:: %s\n", host);
+
+    char dst[100];
+    char *er;
+    unescape(dst, "%25myane", ENCODE_HOST, &er);
+    fprintf(stderr, "decoded string %s\n", dst);
 
     return 0;
 }
