@@ -40,6 +40,8 @@ void cut_str_by_delim(const char *str, char delim, char **a,
         *a = strdup(str);
         *b = NULL;
     }
+
+    free(pos);
 }
 
 bool has_prefix(const char *str, const char *prefix) {

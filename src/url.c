@@ -18,9 +18,9 @@ void getScheme(const char *uri, char **scheme, char **path, char **err) {
     for (size_t i = 0; i < strlen(uri); i++) {
         char c = uri[i];
 
-        if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z') {
+        if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
             // do nothing
-        } else if ('0' <= c && c <= 9 || c == '+' || c == '-' || c == '.') {
+        } else if (('0' <= c && c <= '9') || (c == '+' || c == '-' || c == '.')) {
             if (i == 0) {
                 // scheme cannot start with these characters
                 *scheme = NULL;
@@ -65,7 +65,7 @@ bool isValidPort(const char *port) {
     if (port[0] != ':') 
         return false;
 
-    for (int i = 1; i < strlen(port); i++) {
+    for (size_t i = 1; i < strlen(port); i++) {
         if (port[i] < '0' || port[i] > '9')
             return false;
     }
@@ -135,10 +135,11 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
     }
 
     cut_str_by_delim(path, '?', &url->path, &url->rawQuery);
-    free(path);
+    pfree(path);
 
     if (has_prefix(url->path, "//")) {
-        char *authority, *path_pos;
+        char *authority = NULL,
+             *path_pos;
         Userinfo *userinfo;
 
         if ((path_pos = strchr(url->path, '/')) != NULL) {
@@ -148,7 +149,10 @@ bool parseRequestURI(const char *rawURL, URL *url, char *errstr) {
         }
 
         userinfo = (Userinfo *) palloc(sizeof(Userinfo));
-        getAuthority(authority, userinfo, &url->host, &err);
+        if (authority)
+            getAuthority(authority, userinfo, &url->host, &err);
+
+        
     }
 
     return true;
@@ -172,7 +176,7 @@ static void unescape(char *dest, const char *src,
         switch(c) {
         case '%': 
             if (!isxdigit(src[0]) || !isxdigit(src[1]))
-                // goto error;
+                goto error;
             
             enc[0] = '%';
             enc[1] = src[0];
@@ -180,7 +184,7 @@ static void unescape(char *dest, const char *src,
             
             // %-encoded string is allowed for non-ASCII characters.
             if (mode == ENCODE_HOST && unhex(src[0]) < 8 && strcmp(enc, "%25") != 0) {
-                // goto error;    
+                goto error;    
             }
 
             a = unhex(src[0]);
